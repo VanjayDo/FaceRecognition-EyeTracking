@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/2.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
+import datetime
 
 import os
 
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'EyeTracking',
 
     'rest_framework',
-    'rest_framework.authtoken',  # 设置token
+    'rest_framework.authtoken',  # 设置使用token
 
     'corsheaders',  # API跨域请求
 
@@ -62,35 +63,37 @@ REST_FRAMEWORK = {
     ),
 }
 
+# JWT_AUTH = {
+#     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=300),
+#     'JWT_AUTH_HEADER_PREFIX': 'JWT',
+# }
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # 使用CORS中间件
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # 使用CORS中间件
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',  # 注意中间件的顺序不能反
 ]
 
-# 设置允许无需jwt而直接请求的域名
-# CORS_ORIGIN_WHITELIST = (
-#     # '*'
-#     # '127.0.0.1:8000/jwtAuth',  # 请求的域名
-#     # 'localhost:8080',
-#     # 'localhost',
-# )
+# 设置允许请求的域名
+CORS_ORIGIN_WHITELIST = (
+    # '*'
+    '121.251.251.199:8000',  # 请求的域名
+    # 'localhost:8080',
+    # 'localhost',
+)
 
 ROOT_URLCONF = 'Face_Eye.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -133,6 +136,7 @@ CACHES = {
         'LOCATION': 'redis://172.17.0.3:6379',
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",  # 修改序列化器, 弃用默认的pickle
             # "PASSWORD": "123456",
         },
     },
