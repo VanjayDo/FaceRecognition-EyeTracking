@@ -3,5 +3,5 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url('eye-direction', views.eye_direction, name='eye-direction'),
+    url('get-eye-direction', views.get_eye_direction, name='get-eye-direction'),
 ]
