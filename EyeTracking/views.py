@@ -19,12 +19,11 @@ def store_image(request):
         os.path.join(settings.MEDIA_ROOT, path)
         print("receive img: " + image.name + " successfully")
         face_location = get_face_location(path)
-        print(face_location)
 
         # 调整图片大小
         if face_location:
             img = cv2.imread(path)
-            print(str(img.shape[1]) + "   " + str(img.shape[0]))
+            # print(str(img.shape[1]) + "   " + str(img.shape[0]))
             min_val = min(face_location[0][0], face_location[0][3], (img.shape[0] - face_location[0][2]),
                           (img.shape[1] - face_location[0][1]))
             img = img[(face_location[0][0] - min_val):(face_location[0][2] + min_val),
@@ -55,9 +54,9 @@ def rect_eye(eye):
 def nine_grid(width, height, center):
     width_trisection = int(width / 3)
     height_trisection = int(height / 3)
-    print("img width is :" + str(width) + "  img height is : " + str(height))
-    print("width_trisection is :" + str(width_trisection) + "  height_trisection is : " + str(height_trisection))
-    print("center width is : " + str(center["width"]) + "\ncenter height is : " + str(center["height"]))
+    # print("img width is :" + str(width) + "  img height is : " + str(height))
+    # print("width_trisection is :" + str(width_trisection) + "  height_trisection is : " + str(height_trisection))
+    # print("center width is : " + str(center["width"]) + "\ncenter height is : " + str(center["height"]))
 
     if (center["width"] < width_trisection) & (center["height"] < height_trisection):
         return 0
@@ -81,7 +80,7 @@ def nine_grid(width, height, center):
 
 def get_face_location(img_path):
     """
-    :param img: An image (as a numpy array)
+    :param img_path: An image path
     :return: A list of tuples of found face locations in css (top, right, bottom, left) order like [(171, 409, 439, 141)]
     """
     img = fr.load_image_file(img_path)
@@ -133,6 +132,7 @@ def eye_direction(img_path):
                 left_avg += left_roi[i][j]
                 if left_min > left_roi[i][j]:
                     left_min = left_roi[i][j]
+
         left_avg = int(left_avg / (left_roi.shape[0] * left_roi.shape[1]))
 
         left_center_x = 0
@@ -194,25 +194,45 @@ def eye_direction(img_path):
         return None
 
 
-def judge(result):
-    if result == 0:
-        return "左上"
-    elif result == 1:
-        return "上"
-    elif result == 2:
-        return "右上"
-    elif result == 3:
-        return "左"
-    elif result == 4:
-        return "中"
-    elif result == 5:
-        return "右"
-    elif result == 6:
-        return "左下"
-    elif result == 7:
-        return "下"
+# 判断单眼方向
+# def judge_direction(result):
+#     if result == 0:
+#         return "左上"
+#     elif result == 1:
+#         return "上"
+#     elif result == 2:
+#         return "右上"
+#     elif result == 3:
+#         return "左"
+#     elif result == 4:
+#         return "中"
+#     elif result == 5:
+#         return "右"
+#     elif result == 6:
+#         return "左下"
+#     elif result == 7:
+#         return "下"
+#     else:
+#         return "右下"
+
+# 双眼方向判定
+def judge_direction(left_result, right_result):
+    if ((left_result == 4) & (right_result != 4)) | ((right_result == 4) & (left_result != 4)):
+        return right_result if left_result == 4 else left_result
+    elif ((left_result == 1) & ((right_result == 0) | (right_result == 2))) | (
+            (right_result == 1) & ((left_result == 0) | (left_result == 2))):
+        return right_result if left_result == 1 else left_result
+    elif ((left_result == 7) & ((right_result == 6) | (right_result == 8))) | (
+            (right_result == 7) & ((left_result == 6) | (left_result == 8))):
+        return right_result if left_result == 7 else left_result
+    elif ((left_result == 3) & ((right_result == 0) | (right_result == 6))) | (
+            (right_result == 3) & ((left_result == 0) | (left_result == 6))):
+        return right_result if left_result == 3 else left_result
+    elif ((left_result == 5) & ((right_result == 2) | (right_result == 8))) | (
+            (right_result == 5) & ((left_result == 2) | (left_result == 8))):
+        return right_result if left_result == 7 else left_result
     else:
-        return "右下"
+        return left_result
 
 
 @api_view(["POST"])
@@ -221,9 +241,12 @@ def get_eye_direction(request):
     if img_path is not None:
         result = eye_direction(img_path)
         if result is not None:
-            left_result = judge(result[0])
-            right_result = judge(result[1])
-            return HttpResponse("left is :" + left_result + "  right is :" + right_result)
+            # left_result = judge_direction(result[0])
+            # right_result = judge_direction(result[1])
+            # return HttpResponse("left is :" + left_result + "  right is :" + right_result)
+            print("left is : " + str(result[0]) + "  right is : " + str(result[1]))
+            direction_result = judge_direction(result[0], result[1])
+            return HttpResponse('result is :' + str(direction_result))
         else:
             return HttpResponse("no face detected")
     else:
