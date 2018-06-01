@@ -127,6 +127,7 @@ def eye_direction(img_path):
         # left_roi = cv2.adaptiveThreshold(left_roi, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)  # 高斯自适应二值化
         left_avg = 0
         left_min = 255
+        left_percent_counter = 0
         for i in range(0, left_roi.shape[0]):  # height
             for j in range(0, left_roi.shape[1]):  # width
                 left_avg += left_roi[i][j]
@@ -135,6 +136,12 @@ def eye_direction(img_path):
 
         left_avg = int(left_avg / (left_roi.shape[0] * left_roi.shape[1]))
 
+        for i in range(0, left_roi.shape[0]):  # height
+            for j in range(0, left_roi.shape[1]):  # width
+                if left_roi[i][j] < left_avg:
+                    left_percent_counter += 1
+
+        left_percent = left_percent_counter / (left_roi.shape[0] * left_roi.shape[1])
         left_center_x = 0
         left_center_y = 0
         left_counter = 0
@@ -162,12 +169,20 @@ def eye_direction(img_path):
         # right_roi = cv2.adaptiveThreshold(right_roi, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)  # 高斯自适应二值化
         right_avg = 0
         right_min = 255
+        right_percent_counter = 0
         for i in range(0, right_roi.shape[0]):  # height
             for j in range(0, right_roi.shape[1]):  # width
                 right_avg += right_roi[i][j]
                 if right_min > right_roi[i][j]:
                     right_min = right_roi[i][j]
         right_avg = int(right_avg / (right_roi.shape[0] * right_roi.shape[1]))
+
+        for i in range(0, right_roi.shape[0]):  # height
+            for j in range(0, right_roi.shape[1]):  # width
+                if right_roi[i][j] < right_avg:
+                    right_percent_counter += 1
+
+        right_percent = right_percent_counter / (right_roi.shape[0] * right_roi.shape[1])
 
         right_center_x = 0
         right_center_y = 0
@@ -189,34 +204,35 @@ def eye_direction(img_path):
         right_center_y = math.ceil(right_center_y / right_counter)
         center = {"width": right_center_x, "height": right_center_y}
         right_result = nine_grid(right_roi.shape[1], right_roi.shape[0], center)
-        return [left_result, right_result]
+        return [left_result, left_percent, right_result, right_percent]
     else:
         return None
 
 
-# 判断单眼方向
-# def judge_direction(result):
-#     if result == 0:
-#         return "左上"
-#     elif result == 1:
-#         return "上"
-#     elif result == 2:
-#         return "右上"
-#     elif result == 3:
-#         return "左"
-#     elif result == 4:
-#         return "中"
-#     elif result == 5:
-#         return "右"
-#     elif result == 6:
-#         return "左下"
-#     elif result == 7:
-#         return "下"
-#     else:
-#         return "右下"
+# 根据九宫结果给出最终方向
+def result_direction(result):
+    if result == 0:
+        return "左上"
+    elif result == 1:
+        return "上"
+    elif result == 2:
+        return "右上"
+    elif result == 3:
+        return "左"
+    elif result == 4:
+        return "中"
+    elif result == 5:
+        return "右"
+    elif result == 6:
+        return "左下"
+    elif result == 7:
+        return "下"
+    else:
+        return "右下"
+
 
 # 双眼方向判定
-def judge_direction(left_result, right_result):
+def judge_direction(left_result, left_percent, right_result, right_percent):
     if ((left_result == 4) & (right_result != 4)) | ((right_result == 4) & (left_result != 4)):
         return right_result if left_result == 4 else left_result
     elif ((left_result == 1) & ((right_result == 0) | (right_result == 2))) | (
@@ -232,7 +248,7 @@ def judge_direction(left_result, right_result):
             (right_result == 5) & ((left_result == 2) | (left_result == 8))):
         return right_result if left_result == 7 else left_result
     else:
-        return left_result
+        return right_result if left_percent < right_percent else left_result
 
 
 @api_view(["POST"])
@@ -244,9 +260,10 @@ def get_eye_direction(request):
             # left_result = judge_direction(result[0])
             # right_result = judge_direction(result[1])
             # return HttpResponse("left is :" + left_result + "  right is :" + right_result)
-            print("left is : " + str(result[0]) + "  right is : " + str(result[1]))
-            direction_result = judge_direction(result[0], result[1])
-            return HttpResponse('result is :' + str(direction_result))
+            print("left is : " + str(result[0]) + "  left percent is : " + str(result[1]) + "  right is : " + str(
+                result[2]) + "  right percent is : " + str(result[3]))
+            direction_result = judge_direction(result[0], result[1], result[2], result[3])
+            return HttpResponse('result is :' + result_direction(direction_result))
         else:
             return HttpResponse("no face detected")
     else:
