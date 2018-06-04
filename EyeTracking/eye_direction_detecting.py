@@ -45,7 +45,7 @@ def store_image(request):
             return path
         else:
             print("no face")
-        return None
+            return None
     else:
         print("img did not be stored")
         return None
