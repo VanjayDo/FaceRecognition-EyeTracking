@@ -3,23 +3,69 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from PIL import Image, ImageDraw
 import face_recognition as fr
+import numpy as np
 import math
+import time
 import cv2
 import os
-import time
+
+
+def PIL2CV(img_array):
+    """
+    PIL读取的图片转为OpenCV所能读取的图片
+    :param img_array: PIL将图片转化成的数组
+    :return: OpenCV中的图片数组
+    """
+    return cv2.cvtColor(np.asarray(img_array), cv2.COLOR_RGB2BGR)
+
+
+def CV2PIL(img_array):
+    """
+    OpenCV读取的图片转为PIL所能读取的图片
+    :param img_array: OpenCV将图片转化成的数组
+    :return: PIL中的图片数组
+    """
+    return Image.fromarray(cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB))
+
+
+def CV2FR(img_array):
+    """
+    OpenCV读取的图片转为face_recognition库所能读取的图片
+    :param img_array: OpenCV将图片转化成的数组
+    :return: face_recognition库中的图片数组
+    """
+    return cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+
+
+def PIL2FR(img_array):
+    """
+    PIL读取的图片转为face_recognition库所能读取的图片
+    :param img_array: PIL将图片转化成的数组
+    :return: face_recognition库中的图片数组
+    """
+    return np.array(img_array)
+
+
+def FR2PIL(img_array):
+    """
+    face_recognition读取的图片转为face_recognition库所能读取的图片
+    :param img_array: face_recognition库中的图片数组
+    :return: PIL中的图片数组
+    """
+    return Image.fromarray(np.uint8(img_array))
 
 
 def store_image(request):
     """
-    提取请求中的图片
+    提取请求中的图片, url参数名为face_image
     :param request: 携带图片的请求
     :return: 返回提取图片后保存的路径
     """
-    image = request.FILES.get('faceImg')
+    image = request.FILES.get('face_image')
     if 1024 < image.size < 20480000:
-        path = default_storage.save('static/faceImg/' + image.name, ContentFile(image.read()))
+        path = default_storage.save('static/images/' + image.name, ContentFile(image.read()))
         os.path.join(settings.MEDIA_ROOT, path)
-        print("receive img: " + image.name + " successfully")
+        print("receive image: " + image.name + " successfully")
         # compress_file = Image.open(path)
         # compress_file.save(path, quality=70)
         img = cv2.imread(path)
@@ -30,7 +76,6 @@ def store_image(request):
                 path = path.split(".")[0] + ".jpg"
             # compress = cv2.cvtColor(compress, cv2.COLOR_BGR2GRAY)  # 灰度化
             cv2.imwrite(path, compress)
-
         face_location = get_face_location(path)
         # 调整图片大小
         if face_location:
@@ -181,37 +226,36 @@ def get_eyeball_location(img, eye_coordinate):
     return {"percent": percent, "eyeball_center": eyeball_center, "nine_grid_result": nine_grid_result}
 
 
-def eye_direction(img_path):
+def eyeball_direction(cv_img_array):
     """
-    :param img_path: path of image with face in
+    :param cv_img_array: OpenCV中所能使用的图片数组
     :return: 左眼的九宫位置, 左眼用于判断眼球位置的有效的像素占总数的比例,
              右眼的九宫位置, 右眼用于判断眼球位置的有效的像素占总数的比例.
     """
-    fr_img = fr.load_image_file(img_path)
-    eyes_location = get_eyes_location(fr_img)
+    fr_img_array = CV2FR(cv_img_array)
+    eyes_location = get_eyes_location(fr_img_array)
     if eyes_location is not None:
         left_coordinate = rect_eye(eyes_location["left_eye"])
         right_coordinate = rect_eye(eyes_location["right_eye"])
 
         # 画出眼睛
-        img_draw = Image.open(img_path)
-        ImageDraw.Draw(img_draw).polygon(eyes_location["left_eye"], outline="red")
-        ImageDraw.Draw(img_draw).polygon(eyes_location["right_eye"], outline="red")
-        img_draw.save("eyeDraw/out.png")
+        pil_img_array = FR2PIL(fr_img_array)
+        ImageDraw.Draw(pil_img_array).polygon(eyes_location["left_eye"], outline="red")
+        ImageDraw.Draw(pil_img_array).polygon(eyes_location["right_eye"], outline="red")
+        pil_img_array.save("eyeDraw/out.png")
         # 画眼完毕
 
-        img = cv2.imread(img_path)
-
-        left_eyeball = get_eyeball_location(img, left_coordinate)
+        left_eyeball = get_eyeball_location(cv_img_array, left_coordinate)
         left_percent = left_eyeball["percent"]
         left_result = left_eyeball["nine_grid_result"]
 
-        right_eyeball = get_eyeball_location(img, right_coordinate)
+        right_eyeball = get_eyeball_location(cv_img_array, right_coordinate)
         right_percent = right_eyeball["percent"]
         right_result = right_eyeball["nine_grid_result"]
 
         return [left_result, left_percent, right_result, right_percent]
     else:
+        print("bye")
         return None
 
 
