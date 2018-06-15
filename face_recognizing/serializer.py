@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from face_recognition.models import FaceCharacteristic
+from face_recognizing.models import FaceCharacteristic
 
 
 class FaceCharacteristicSerializer(serializers.HyperlinkedModelSerializer):

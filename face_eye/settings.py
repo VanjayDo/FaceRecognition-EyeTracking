@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Add new apps
-    'face_recognition',
+    'face_recognizing',
     'eye_tracking',
 
     'rest_framework',
