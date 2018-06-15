@@ -41,27 +41,27 @@ INSTALLED_APPS = [
     'face_recognizing',
     'eye_tracking',
 
-    # 'rest_framework',
-    # 'rest_framework.authtoken',  # 设置使用token
-    #
-    # 'corsheaders',  # API跨域请求
+    'rest_framework',
+    'rest_framework.authtoken',  # 设置使用token
+
+    'corsheaders',  # API跨域请求
 
 ]
 
 # django-rest-framework设置使用JWT
-# REST_FRAMEWORK = {
-#     'PAGE_SIZE': 100,
-#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
-#     # 设置所有接口都需要被验证
-#     'DEFAULT_PERMISSION_CLASSES': (
-#         'rest_framework.permissions.IsAuthenticated',
-#     ),
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#         'rest_framework.authentication.BasicAuthentication',
-#     ),
-# }
+REST_FRAMEWORK = {
+    'PAGE_SIZE': 100,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+    # 设置所有接口都需要被验证
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
