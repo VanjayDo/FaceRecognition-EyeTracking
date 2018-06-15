@@ -70,44 +70,24 @@ def store_image(request):
         # compress_file.save(path, quality=70)
         img = cv2.imread(path)
         if img.shape[1] > 500:
-            compress = cv2.resize(img, (0, 0), fx=0.3, fy=0.3)
-            if path[-3:] != "jpg":
-                # 注意, 此处的path除了图片文件名中含有"."外, 路径中不应出现"."
-                path = path.split(".")[0] + ".jpg"
-            # compress = cv2.cvtColor(compress, cv2.COLOR_BGR2GRAY)  # 灰度化
-            cv2.imwrite(path, compress)
-        face_location = get_face_location(path)
+            img = cv2.resize(img, (0, 0), fx=0.3, fy=0.3)
+        fr_img = CV2FR(img)
+        face_location = get_face_location(fr_img)
         # 调整图片大小
         if face_location:
-            img = cv2.imread(path)
             # min_val为脸部框四周距离图片边框的最小值
             min_val = min(face_location[0][0], face_location[0][3], (img.shape[0] - face_location[0][2]),
                           (img.shape[1] - face_location[0][1]))
             img = img[(face_location[0][0] - min_val):(face_location[0][2] + min_val),
                   (face_location[0][3] - min_val):(face_location[0][1] + min_val)]
             resize = cv2.resize(img, (250, 250))  # 调整图片分辨率为250*250
-            cv2.imwrite(path, resize)
-            return path
+            return resize
         else:
             print("no face")
             return None
     else:
         print("img did not be stored")
         return None
-
-
-def rect_eye(eye_landmarks):
-    """
-    传入face_recognition.face_landmarks函数返回的眼部定位六坐标list,
-    返回左上角和右下角的坐标, 构成眼部矩形
-    :param eye_landmarks: 眼睛坐标,如[(193, 251), (205, 242), (223, 244), (235, 258), (220, 261), (203, 259)]
-    :return: 一个含有四个键值对的dict, 分别为图片左上角的x,y坐标和图片右下角的x,y坐标
-    """
-    width = eye_landmarks[3][0] - eye_landmarks[0][0]
-    height = int((eye_landmarks[4][1] + eye_landmarks[5][1] - eye_landmarks[1][1] - eye_landmarks[2][1]) / 2)
-    x = eye_landmarks[0][0]
-    y = int((eye_landmarks[1][1] + eye_landmarks[2][1]) / 2)
-    return {"x1": x, "y1": y, "x2": x + width, "y2": y + height}
 
 
 def nine_grid(width, height, center):
@@ -144,18 +124,46 @@ def nine_grid(width, height, center):
         return 4
 
 
-def get_face_location(img_path):
+def get_face_location(fr_img):
     """
-    :param img_path: An image path
+    :param fr_img: face_recognition库可直接使用的图像数组
     :return: A list of tuples of found face locations in css (top, right, bottom, left) order like [(171, 409, 439, 141)]
     """
-    start = time.time()
-    img = fr.load_image_file(img_path)
-    print("载入脸部图片消耗的时间: " + str(time.time() - start))
-    start = time.time()
-    face_location = fr.api.face_locations(img)
-    print("得到脸部坐标消耗的时间: " + str(time.time() - start))
+    face_location = fr.api.face_locations(fr_img)
     return face_location
+
+
+def eyeball_direction(cv_img_array):
+    """
+    :param cv_img_array: OpenCV中所能使用的图片数组
+    :return: 左眼的九宫位置, 左眼用于判断眼球位置的有效的像素占总数的比例,
+             右眼的九宫位置, 右眼用于判断眼球位置的有效的像素占总数的比例.
+    """
+    fr_img_array = CV2FR(cv_img_array)
+    eyes_location = get_eyes_location(fr_img_array)
+    if eyes_location is not None:
+        left_coordinate = rect_eye(eyes_location["left_eye"])
+        right_coordinate = rect_eye(eyes_location["right_eye"])
+
+        # 画出眼睛
+        pil_img_array = FR2PIL(fr_img_array)
+        ImageDraw.Draw(pil_img_array).polygon(eyes_location["left_eye"], outline="red")
+        ImageDraw.Draw(pil_img_array).polygon(eyes_location["right_eye"], outline="red")
+        pil_img_array.save("eyeDraw/out.png")
+        # 画眼完毕
+
+        left_eyeball = get_eyeball_location(cv_img_array, left_coordinate)
+        left_percent = left_eyeball["percent"]
+        left_result = left_eyeball["nine_grid_result"]
+
+        right_eyeball = get_eyeball_location(cv_img_array, right_coordinate)
+        right_percent = right_eyeball["percent"]
+        right_result = right_eyeball["nine_grid_result"]
+
+        return [left_result, left_percent, right_result, right_percent]
+    else:
+        print("bye")
+        return None
 
 
 def get_eyes_location(img):
@@ -172,6 +180,20 @@ def get_eyes_location(img):
         return eyes_location
     else:
         return None
+
+
+def rect_eye(eye_landmarks):
+    """
+    传入face_recognition.face_landmarks函数返回的眼部定位六坐标list,
+    返回左上角和右下角的坐标, 构成眼部矩形
+    :param eye_landmarks: 眼睛坐标,如[(193, 251), (205, 242), (223, 244), (235, 258), (220, 261), (203, 259)]
+    :return: 一个含有四个键值对的dict, 分别为图片左上角的x,y坐标和图片右下角的x,y坐标
+    """
+    width = eye_landmarks[3][0] - eye_landmarks[0][0]
+    height = int((eye_landmarks[4][1] + eye_landmarks[5][1] - eye_landmarks[1][1] - eye_landmarks[2][1]) / 2)
+    x = eye_landmarks[0][0]
+    y = int((eye_landmarks[1][1] + eye_landmarks[2][1]) / 2)
+    return {"x1": x, "y1": y, "x2": x + width, "y2": y + height}
 
 
 def get_eyeball_location(img, eye_coordinate):
@@ -226,39 +248,6 @@ def get_eyeball_location(img, eye_coordinate):
     return {"percent": percent, "eyeball_center": eyeball_center, "nine_grid_result": nine_grid_result}
 
 
-def eyeball_direction(cv_img_array):
-    """
-    :param cv_img_array: OpenCV中所能使用的图片数组
-    :return: 左眼的九宫位置, 左眼用于判断眼球位置的有效的像素占总数的比例,
-             右眼的九宫位置, 右眼用于判断眼球位置的有效的像素占总数的比例.
-    """
-    fr_img_array = CV2FR(cv_img_array)
-    eyes_location = get_eyes_location(fr_img_array)
-    if eyes_location is not None:
-        left_coordinate = rect_eye(eyes_location["left_eye"])
-        right_coordinate = rect_eye(eyes_location["right_eye"])
-
-        # 画出眼睛
-        pil_img_array = FR2PIL(fr_img_array)
-        ImageDraw.Draw(pil_img_array).polygon(eyes_location["left_eye"], outline="red")
-        ImageDraw.Draw(pil_img_array).polygon(eyes_location["right_eye"], outline="red")
-        pil_img_array.save("eyeDraw/out.png")
-        # 画眼完毕
-
-        left_eyeball = get_eyeball_location(cv_img_array, left_coordinate)
-        left_percent = left_eyeball["percent"]
-        left_result = left_eyeball["nine_grid_result"]
-
-        right_eyeball = get_eyeball_location(cv_img_array, right_coordinate)
-        right_percent = right_eyeball["percent"]
-        right_result = right_eyeball["nine_grid_result"]
-
-        return [left_result, left_percent, right_result, right_percent]
-    else:
-        print("bye")
-        return None
-
-
 def judge_direction(left_result, left_percent, right_result, right_percent):
     """
     根据左/右眼的九宫位置, 左/右眼用于判断眼球位置的有效的像素占总数的比例,给出双眼方向判定
@@ -293,20 +282,20 @@ def result_direction(result):
     :return: 翻译九宫位置为中文结果
     """
     if result == 0:
-        return "左上"
+        return "upper left"
     elif result == 1:
-        return "上"
+        return "up"
     elif result == 2:
-        return "右上"
+        return "upper right"
     elif result == 3:
-        return "左"
+        return "left"
     elif result == 4:
-        return "中"
+        return "center"
     elif result == 5:
-        return "右"
+        return "right"
     elif result == 6:
-        return "左下"
+        return "lower left"
     elif result == 7:
-        return "下"
+        return "down"
     else:
-        return "右下"
+        return "lower right"

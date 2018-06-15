@@ -13,8 +13,8 @@ from FaceRecognition import views as FaceRecognitionViewsFunction
 
 urlpatterns = [
     # path("", include(router.urls)),
-    path('admin/', admin.site.urls),
-    path(r'JwtAuth', obtain_jwt_token),  # 获取JWT Token API
-    path(r'FaceRecognition/', include('FaceRecognition.urls')),
-    path(r'EyeTracking', include('EyeTracking.urls')),
+    path('admin', admin.site.urls),
+    path('JwtAuth', obtain_jwt_token),  # 获取JWT Token API
+    path('FaceRecognition', include('FaceRecognition.urls')),
+    path('EyeTracking', include('EyeTracking.urls')),
 ]

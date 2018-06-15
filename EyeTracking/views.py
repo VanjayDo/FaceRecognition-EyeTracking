@@ -1,17 +1,15 @@
-from rest_framework.decorators import api_view
-from django.http import HttpResponse
 from . import eyeball_direction_detecting as eyeball_direction
 from . import eyeball_movement_tracking as eyeball_movement
+from rest_framework.decorators import api_view
+from django.http import HttpResponse
 import time
-import cv2
 
 
 @api_view(["POST"])
 def get_eyeball_direction(request):
     start = time.time()
-    img_path = eyeball_direction.store_image(request)
-    if img_path is not None:
-        cv_img_array = cv2.imread(img_path)
+    cv_img_array = eyeball_direction.store_image(request)
+    if cv_img_array is not None:
         result = eyeball_direction.eyeball_direction(cv_img_array)
         if result is not None:
             print("left is : " + str(result[0]) + "  left percent is : " + str(result[1]) + "  right is : " + str(
