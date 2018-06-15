@@ -1,3 +1,7 @@
+<<<<<<< HEAD:face_recognizing/face_recognition.py
+=======
+from face_recognizing.serializer import FaceCharacteristicSerializer
+>>>>>>> 21b16f85f83008ff1f55b3a2384e5fb2517259d9:face_recognizing/face_recognition.py
 from face_recognizing.models import FaceCharacteristic
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile

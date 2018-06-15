@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class FacerecognizingConfig(AppConfig):
-    name = 'face_recognizing'
+class FacerecognitionConfig(AppConfig):
+    name = 'face_recognition'
