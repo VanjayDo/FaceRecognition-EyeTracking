@@ -3,26 +3,26 @@ from face_recognition.face_recognition import *
 from django.http import HttpResponse
 
 
-@api_view(["GET"])
-def read_from_cache(request):
-    """
-    从cache中读取所有的脸部信息
-    :param request:http请求
-    :return: cache中所有的脸部信息
-    """
-    faces = read_all_from_cache()
-    return HttpResponse(faces)
-
-
-@api_view(["GET"])
-def read_from_db(request):
-    """
-    从数据库中读取所有的脸部信息
-    :param request:http请求
-    :return: 数据库中所有的脸部信息
-    """
-    faces = read_all_from_db()
-    return HttpResponse(faces)
+# @api_view(["GET"])
+# def read_from_cache(request):
+#     """
+#     从cache中读取所有的脸部信息
+#     :param request:http请求
+#     :return: cache中所有的脸部信息
+#     """
+#     faces = read_all_from_cache()
+#     return HttpResponse(faces)
+#
+#
+# @api_view(["GET"])
+# def read_from_db(request):
+#     """
+#     从数据库中读取所有的脸部信息
+#     :param request:http请求
+#     :return: 数据库中所有的脸部信息
+#     """
+#     faces = read_all_from_db()
+#     return HttpResponse(faces)
 
 
 @api_view(["POST"])
