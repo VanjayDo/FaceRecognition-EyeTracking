@@ -1,5 +1,4 @@
-from face_recognition.serializer import FaceCharacteristicSerializer
-from face_recognition.models import FaceCharacteristic
+from face_recognizing.models import FaceCharacteristic
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.core.cache import cache

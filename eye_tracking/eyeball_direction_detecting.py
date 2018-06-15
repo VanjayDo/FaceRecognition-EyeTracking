@@ -146,10 +146,10 @@ def eyeball_direction(cv_img_array):
         right_coordinate = rect_eye(eyes_location["right_eye"])
 
         # 画出眼睛
-        pil_img_array = FR2PIL(fr_img_array)
-        ImageDraw.Draw(pil_img_array).polygon(eyes_location["left_eye"], outline="red")
-        ImageDraw.Draw(pil_img_array).polygon(eyes_location["right_eye"], outline="red")
-        pil_img_array.save("eyeDraw/out.png")
+        # pil_img_array = FR2PIL(fr_img_array)
+        # ImageDraw.Draw(pil_img_array).polygon(eyes_location["left_eye"], outline="red")
+        # ImageDraw.Draw(pil_img_array).polygon(eyes_location["right_eye"], outline="red")
+        # pil_img_array.save("eyeDraw/out.png")
         # 画眼完毕
 
         left_eyeball = get_eyeball_location(cv_img_array, left_coordinate)
