@@ -1,6 +1,4 @@
 from django.conf.urls import url
-from django.urls import path
-from rest_framework.urlpatterns import format_suffix_patterns
 
 from . import views
 
@@ -13,6 +11,7 @@ from . import views
 # })
 
 urlpatterns = [
-    url('list', views.getCache),
-    url('create', views.UserExits)
+    url('cache/faces', views.read_from_cache, name="list"),
+    url('db/faces', views.read_from_db, name="db-list"),
+    url('recognize-face', views.recognize_face, name="recognize-face")
 ]
