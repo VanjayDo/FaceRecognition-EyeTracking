@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view
-from FaceRecognition.face_recognition import *
+from face_recognition.face_recognition import *
 from django.http import HttpResponse
 
 
