@@ -1,7 +1,3 @@
-<<<<<<< HEAD:face_recognizing/face_recognition.py
-=======
-from face_recognizing.serializer import FaceCharacteristicSerializer
->>>>>>> 21b16f85f83008ff1f55b3a2384e5fb2517259d9:face_recognizing/face_recognition.py
 from face_recognizing.models import FaceCharacteristic
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -44,6 +40,7 @@ def add_new_face(unique_id, unknown_face_encodings):
         new_face.save()
     except Exception as e:
         print(e)
+        return False
 
 
 def store_image(request):

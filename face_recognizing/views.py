@@ -36,13 +36,18 @@ def recognize_face(request):
     unique_id = request.POST.get("unique_id")
     img_face_encoding = get_face_encodings(img_path)
     if img_face_encoding is not None:
-        recognize_result = recognize(img_face_encoding)
-        if recognize_result is not False:
+        user_id = recognize(img_face_encoding)
+        if user_id is not False:
             # 如果已经添加过, 返回unique_id
-            return HttpResponse("the face added before, it is " + recognize_result)
+            result = {"recognition-result": True, "user-id": user_id}
+            return HttpResponse(json.dumps(result), content_type="application/json")
         else:
-            add_new_face(unique_id, img_face_encoding)
-            return HttpResponse(unique_id)
+            added_result = add_new_face(unique_id, img_face_encoding)
+            if added_result is not False:
+                added_result = True
+            result = {"recognition-result": False, "add": added_result}
+            return HttpResponse(json.dumps(result), content_type="application/json")
     else:
         # 说明图中没有脸
-        return "can not detect faces"
+        result = {"recognition-result": "can not detect faces"}
+        return HttpResponse(json.dumps(result), content_type="application/json")
