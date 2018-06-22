@@ -34,6 +34,9 @@ url: `/face-recognizing/recognize-face`
 
 ### 文件说明
 `requirements.txt`: pip导出的项目依赖;
+
 `set-mysql-trigger.sql`: 创建mysql数据库中自动更新新插入数据到redis缓存的trigger;
+
 `Dockerfile`: 构建face-eye容器的dockerfile;
+
 `docker-compose.yml`: 编排整个项目的compose配置文件;
