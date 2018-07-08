@@ -49,14 +49,19 @@ def store_image(request):
     :param request: 携带图片的请求
     :return: 保存后图片的地址
     """
-    image = request.FILES.get('face_image')
-    if 1024 < image.size < 20480000:
-        path = default_storage.save('static/images/' + image.name, ContentFile(image.read()))
-        os.path.join(settings.MEDIA_ROOT, path)
-        print("receive img: " + image.name + " successfully")
-        return path
-    else:
-        return None
+    max_image_size = 20971520  # 所接收的图片最大尺寸, 单位为字节, 此处设置为20M
+    try:
+        image = request.FILES.get('face_image')
+        if image.size < max_image_size:
+            path = default_storage.save('static/images/' + image.name, ContentFile(image.read()))
+            os.path.join(settings.MEDIA_ROOT, path)
+            print("receive img: " + image.name + " successfully")
+            return path
+        else:
+            return None
+    except Exception as e:
+        print("store image error")
+        print(e)
 
 
 def get_face_encodings(img_path):
