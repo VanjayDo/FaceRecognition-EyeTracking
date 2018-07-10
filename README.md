@@ -3,9 +3,9 @@
 ### 说明
 本项目是一个根据所给图片进行人脸识别和眼球运动方向追踪的后台应用.
 
-### API
+### APIs
 #### 眼球方向识别
-url: `/eye-tracking/get-eyeball-direction`
+api: `/eye-tracking/get-eyeball-direction`
 
 方法: `POST`
 
@@ -17,8 +17,10 @@ url: `/eye-tracking/get-eyeball-direction`
 2. 未检测到图中人脸, 返回{"result": "can not detect faces"};
 3. 图片存储失败, 返回{"result": "image store error"}, 原因可能为图片过大或网络问题;
 
+##### 眼球方向识别功能已单独抽象成python模块发布到pypi, 可直接进行复用, 详情👉[见此项目](https://github.com/VanjayDo/eye_game)
+
 #### 脸部识别
-url: `/face-recognizing/recognize-face`
+api: `/face-recognizing/recognize-face`
 
 方法: `POST`
 
@@ -40,3 +42,5 @@ url: `/face-recognizing/recognize-face`
 `Dockerfile`: 构建face-eye容器的dockerfile;
 
 `docker-compose.yml`: 编排整个项目的compose配置文件;
+
+`docker-mysql2redis/`: 存放定制mysql2redis镜像的dockerfile;
