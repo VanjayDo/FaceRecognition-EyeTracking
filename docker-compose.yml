@@ -1,27 +1,22 @@
-version: "3.1"
+version: "3"
 
 services:
   face_eye:
-    image: face_eye
-    build: .
+    image: vanjaydo/face-eye
     ports: ["8000:8000"]
-    command: 'bash -c "cd /home/FaceEye/ && \
-              python manage.py makemigrations && \
-              python manage.py migrate && \
-              uwsgi /home/FaceEye/face_eye/face_eye_uwsgi.ini"'
+    volumes: [".:/mnt"]
+    command: "bash /mnt/run_face_eye.sh"
     depends_on:
      - redis
-     - mysql2redis1
+     - mysql2redis
 
   redis:
     image: redis
-    ports: ["6379"]
 
-  mysql2redis1:
-    image: vanjaydo/mysql2redis
-    build: ./mysql2redis
+  mysql2redis:
+    build: ./docker-mysql2redis
+    volumes: [".:/mnt"]
     environment:
       MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: face_eye
 
 
